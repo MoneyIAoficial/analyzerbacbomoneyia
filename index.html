@@ -40,9 +40,9 @@
             margin: 0 auto 0 auto; 
             max-width: 150px; 
             height: auto;
-            border: 2px solid var(--accent-blue); /* NOVA PROPRIEDADE: Borda azul fina */
-            border-radius: 8px; /* Opcional: Para cantos levemente arredondados */
-            padding: 5px; /* Opcional: Para dar um pequeno respiro entre a imagem e a borda */
+            border: 2px solid var(--accent-blue); 
+            border-radius: 8px; 
+            padding: 5px; 
         }
         
         h1 { 
@@ -224,6 +224,7 @@
         <button class="primary-btn" onclick="login()">INICIAR SESSÃO</button>
         <hr style="border-color: var(--border-color); margin: 20px 0;">
         <button class="secondary-btn" onclick="showCadastro()">SOLICITAR ACESSO / CADASTRO</button>
+        <button class="secondary-btn" style="margin-top: 10px;" onclick="abrirPlataforma()">PLATAFORMA</button>
     </div>
     
     <div id="cadastro-screen" class="section">
@@ -305,6 +306,10 @@
     
     // 📢 ONDE A MENSAGEM SERÁ ENVIADA: O username fornecido!
     const TELEGRAM_RECIPIENT = 'MoneyIA2026';
+    
+    // 🌐 URL DA PLATAFORMA DE JOGOS/ANÁLISE
+    const PLATFORM_URL = 'https://1wuafz.life/casino/list?open=register&p=uiul';
+
 
     // Variáveis Globais de Estado
     let banca = 0;
@@ -315,6 +320,13 @@
     let acertosTotal = 0;
     let timerOperacao = null; 
     let isOperating = false;
+
+    // --- FUNÇÃO PARA ABRIR A PLATAFORMA (NOVA) ---
+    function abrirPlataforma() {
+        // Tenta abrir a URL em uma nova aba (_blank)
+        window.open(PLATFORM_URL, '_blank');
+        mostrarNotificacao('🔗 Abrindo a plataforma em uma nova aba...', 'info', 3000);
+    }
 
     // --- FUNÇÕES DE CONTROLE DE TELA ---
     
