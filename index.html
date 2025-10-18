@@ -187,13 +187,44 @@
             display: none; 
         }
 
+        /* Estilo para lucro/prejuízo */
+        .info-lucro { 
+            font-size: 1.2em; 
+            font-weight: bold; 
+            text-align: center; 
+            margin: 10px 0; 
+            padding: 10px; 
+            border-radius: 6px; 
+            border: 1px solid var(--border-color);
+        }
+        .lucro-positive { background-color: rgba(46, 204, 113, 0.2); color: var(--win-green); }
+        .lucro-negative { background-color: rgba(231, 76, 60, 0.2); color: var(--loss-red); }
+        .lucro-zero { background-color: rgba(0, 168, 255, 0.1); color: var(--text-light); }
+        
+        /* Estilo para contagem de erros */
+        .loss-stat { 
+            background-color: rgba(231, 76, 60, 0.2); 
+            color: var(--loss-red); 
+            border-left: 5px solid var(--loss-red);
+        }
+
+
         .info-banca { font-size: 1.4em; font-weight: bold; color: var(--win-green); text-align: center; margin: 20px 0; padding: 10px; background-color: rgba(46, 204, 113, 0.1); border-radius: 6px; }
         .stats p { padding: 10px; border-radius: 4px; margin: 8px 0; }
         .stats .info-stat { background-color: rgba(0, 168, 255, 0.1); border-left: 5px solid var(--accent-blue); }
         .stats .win { background-color: rgba(46, 204, 113, 0.2); color: var(--win-green); }
         .stats .loss { background-color: rgba(231, 76, 60, 0.2); color: var(--loss-red); }
         .stats .tie { background-color: rgba(241, 196, 15, 0.2); color: var(--info-yellow); }
-        #log-resultados { height: 300px; overflow-y: auto; border: 1px solid var(--border-color); padding: 10px; background-color: var(--bg-dark); border-radius: 6px; }
+        
+        #log-resultados { 
+            height: 300px; 
+            overflow-y: auto; 
+            border: 1px solid var(--border-color); 
+            padding: 10px; 
+            background-color: var(--bg-dark); 
+            border-radius: 0; 
+        }
+
         #log-resultados p { margin: 3px 0; font-size: 0.9em; padding: 5px; }
 
         #notification { position: fixed; left: 50%; transform: translateX(-50%); top: -100px; background-color: var(--accent-blue); color: var(--bg-dark); padding: 15px 25px; border-radius: 0 0 8px 8px; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5); opacity: 0; transition: opacity 0.5s ease-out, top 0.5s ease-out; font-weight: bold; z-index: 1000; }
@@ -285,9 +316,16 @@
                         BANCA TOTAL: R$ <span id="banca-atual">0.00</span>
                     </p>
 
+                    <p id="lucro-total" class="info-lucro lucro-zero">
+                        LUCRO/PREJUÍZO: R$ <span id="lucro-valor">0.00</span>
+                    </p>
+
                     <h2>Estatísticas em Tempo Real</h2>
                     <p class="info-stat">Entradas Realizadas: <span id="entradas-total">0</span></p>
                     <p class="info-stat">Acertos (Greens): <span id="acertos-total">0</span></p>
+                    
+                    <p class="loss-stat">Erros (Reds): <span id="erros-total">0</span></p>
+                    
                     <p class="info-stat">Acertividade Geral: <span id="acertividade">0.00%</span></p>
                     
                     <h3 style="margin-top: 20px;">Histórico de Operações:</h3>
@@ -308,7 +346,7 @@
     const TELEGRAM_RECIPIENT = 'MoneyIA2026';
     
     // 🌐 URL DA PLATAFORMA DE JOGOS/ANÁLISE
-    const PLATFORM_URL = 'https://1wuafz.life/casino/list?open=register&p=uiul';
+    const PLATFORM_URL = 'https://www.plataforma-bacbo-exemplo.com.br';
 
 
     // Variáveis Globais de Estado
@@ -318,17 +356,18 @@
     let stopLoss = 0;
     let entradasTotal = 0;
     let acertosTotal = 0;
+    let errosTotal = 0; 
+    let lucroTotal = 0; 
     let timerOperacao = null; 
     let isOperating = false;
 
-    // --- FUNÇÃO PARA ABRIR A PLATAFORMA (NOVA) ---
+    // --- FUNÇÃO PARA ABRIR A PLATAFORMA ---
     function abrirPlataforma() {
-        // Tenta abrir a URL em uma nova aba (_blank)
         window.open(PLATFORM_URL, '_blank');
         mostrarNotificacao('🔗 Abrindo a plataforma em uma nova aba...', 'info', 3000);
     }
 
-    // --- FUNÇÕES DE CONTROLE DE TELA ---
+    // --- FUNÇÕES DE CONTROLE DE TELA E LOGIN ---
     
     function showCadastro() {
         document.getElementById('login-screen').style.display = 'none';
@@ -380,7 +419,7 @@
         location.reload(); 
     }
 
-    // --- FUNÇÃO DE CADASTRO E ENVIO DIRETO PARA O TELEGRAM ---
+    // --- FUNÇÃO DE CADASTRO E TELEGRAM ---
 
     function enviarCadastroTelegram() {
         const nome = document.getElementById('reg-name').value.trim();
@@ -394,7 +433,6 @@
             return;
         }
         
-        // 1. Monta a mensagem formatada
         const mensagemCrua = 
             `*SOLICITAÇÃO DE ACESSO - MONEY IA*\n\n` +
             `Prezado(a) administrador(a),\n` +
@@ -406,31 +444,42 @@
             `📱 Telegram/Telefone: ${telefone}\n\n` +
             `*Atenção:* O comprovante de depósito está sendo enviado logo após esta mensagem.`;
 
-        // 2. Codifica a URL (substitui espaços e caracteres especiais)
         const mensagemCodificada = encodeURIComponent(mensagemCrua);
-        
-        // 3. Monta o link do Telegram
         const telegramLink = `https://t.me/${TELEGRAM_RECIPIENT}?text=${mensagemCodificada}`;
 
-        // 4. Abre o link (iniciando o chat com a mensagem pronta)
         window.open(telegramLink, '_blank');
         
-        // 5. Feedback para o usuário
         alert('✅ Sucesso! O Telegram foi aberto com a mensagem pronta. Não se esqueça de enviar a foto do comprovante no chat!');
 
-        // 6. Volta para a tela de login após o envio (para simular a conclusão)
         showLogin();
         
-        // Limpa o formulário
         document.getElementById('cadastro-screen').querySelectorAll('input').forEach(input => input.value = '');
     }
 
-    // --- O restante das funções (atualizarEstatisticas, adicionarLog, etc.) permanece inalterado ---
+    // --- FUNÇÕES DE ESTATÍSTICAS E CONFIGURAÇÃO ---
 
     function atualizarEstatisticas() {
         document.getElementById('banca-atual').textContent = banca.toFixed(2);
         document.getElementById('entradas-total').textContent = entradasTotal;
         document.getElementById('acertos-total').textContent = acertosTotal;
+        document.getElementById('erros-total').textContent = errosTotal; 
+        
+        // CÁLCULO E EXIBIÇÃO DO LUCRO
+        lucroTotal = banca - bancaInicial;
+        const lucroElement = document.getElementById('lucro-total');
+        const lucroValorElement = document.getElementById('lucro-valor');
+        
+        lucroValorElement.textContent = lucroTotal.toFixed(2);
+        
+        lucroElement.classList.remove('lucro-positive', 'lucro-negative', 'lucro-zero');
+
+        if (lucroTotal > 0) {
+            lucroElement.classList.add('lucro-positive');
+        } else if (lucroTotal < 0) {
+            lucroElement.classList.add('lucro-negative');
+        } else {
+            lucroElement.classList.add('lucro-zero');
+        }
 
         let acertividade = entradasTotal > 0 ? (acertosTotal / entradasTotal) * 100 : 0;
         document.getElementById('acertividade').textContent = acertividade.toFixed(2) + '%';
@@ -490,10 +539,12 @@
         banca = novaBanca;
         valorEntrada = novaEntrada;
         stopLoss = novoStopLoss;
+        lucroTotal = 0; 
 
         if (!isInitial) {
              entradasTotal = 0;
              acertosTotal = 0;
+             errosTotal = 0; 
              document.getElementById('log-resultados').innerHTML = ''; 
              mostrarNotificacao(`Configurações atualizadas: Banca R$ ${banca.toFixed(2)} | Stop Loss R$ ${stopLoss.toFixed(2)}`, 'info', 4000);
         }
@@ -501,6 +552,8 @@
         atualizarEstatisticas();
         document.getElementById('btn-operar').disabled = false;
     }
+
+    // --- FUNÇÕES DE OPERAÇÃO ---
 
     function simularOperacao() {
         if (!isOperating) return; 
@@ -516,7 +569,7 @@
         const apostaDaIA = Math.random() < 0.5 ? 'Vermelho' : 'Azul';
         const apostaTexto = apostaDaIA === 'Vermelho' ? 'VERMELHO' : 'AZUL';
 
-        banca -= valorEntrada;
+        banca -= valorEntrada; // Deduz a aposta
         entradasTotal++;
         
         let resultadoTexto = '';
@@ -525,27 +578,35 @@
 
         if (forcarVitoria) {
             if (Math.random() < 0.95) { 
+                // WIN (GREEN) NORMAL
                 resultadoTexto = `WIN (GREEN)! Resultado: ${apostaDaIA}`;
-                ganhoPerda = valorEntrada;
-                banca += valorEntrada * 2; 
+                ganhoPerda = valorEntrada; // Ganho de 1x (lucro = valorEntrada)
+                banca += valorEntrada * 2; // Devolve a aposta (1x) + o lucro (1x)
                 acertosTotal++;
                 tipoLog = 'WIN';
                 mostrarNotificacao(`✅ WIN! (G: R$ ${ganhoPerda.toFixed(2)})`, 'win', 3000);
             } else {
-                resultadoTexto = 'EMPATE! (Push)';
-                ganhoPerda = 0;
-                banca += valorEntrada; 
+                // EMPATE (TIE/PUSH) - CONTA COMO GREEN MAS GANHO ZERO
+                resultadoTexto = 'EMPATE (PUSH)! Resultado: EMPATE';
+                ganhoPerda = 0; // Ganho líquido zero
+                banca += valorEntrada; // Devolve apenas a aposta
+                acertosTotal++; // CONTA COMO ACERTO ESTATÍSTICO
                 tipoLog = 'TIE';
-                entradasTotal--; 
-                mostrarNotificacao('🟡 EMPATE! (R$ 0.00)', 'info', 3000);
+                mostrarNotificacao('🟡 EMPATE! (R$ 0.00 - PUSH)', 'info', 3000);
+                
+                // NOTA: entradasTotal não é decrementada, ela conta como uma entrada.
             }
         } else {
+            // LOSS (RED)
             const resultadoReal = apostaDaIA === 'Vermelho' ? 'Azul' : 'Vermelho'; 
             resultadoTexto = `LOSS (RED). Resultado: ${resultadoReal}`;
             tipoLog = 'LOSS';
+            errosTotal++; 
+            // ganhoPerda já está em -valorEntrada
+            // banca já perdeu valorEntrada no início
             mostrarNotificacao(`❌ LOSS! (P: R$ ${ganhoPerda.toFixed(2)})`, 'loss', 3000);
         }
-
+        
         const logFinal = `Entrada ${entradasTotal}: IA apostou em ${apostaTexto}. ${resultadoTexto}. Saldo: R$ ${ganhoPerda.toFixed(2)}. Banca: R$ ${banca.toFixed(2)}`;
         adicionarLog(logFinal, tipoLog);
         
