@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MONEY AI - Dashboard de Operações</title>
+    <style>
+        :root {
+            --bg-dark: #1e272e;        
+            --card-bg: #2f3640;        
+            --text-light: #f5f6fa;     
+            --accent-blue: #00a8ff;    
+            --win-green: #2ecc71;      
+            --loss-red: #e74c3c;       
+            --info-yellow: #f1c40f;    
+            --border-color: #485460;   
+        }
+
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            margin: 0; 
+            padding: 30px 20px 20px 20px; 
+            background-color: var(--bg-dark); 
+            color: var(--text-light); 
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            min-height: 100vh;
+        }
+        
+        .container { 
+            width: 100%;
+            max-width: 1000px; 
+            margin: 0 auto; 
+        }
+
+        /* Estilo para a logo */
+        .header-logo {
+            display: block; 
+            margin: 0 auto 0 auto; 
+            max-width: 150px; 
+            height: auto;
+            border: 2px solid var(--accent-blue); /* NOVA PROPRIEDADE: Borda azul fina */
+            border-radius: 8px; /* Opcional: Para cantos levemente arredondados */
+            padding: 5px; /* Opcional: Para dar um pequeno respiro entre a imagem e a borda */
+        }
+        
+        h1 { 
+            text-align: center; 
+            color: var(--accent-blue); 
+            margin-top: 5px; 
+            margin-bottom: 20px; 
+            font-size: 2.5em;
+            text-shadow: 0 0 10px rgba(0, 168, 255, 0.3);
+        }
+        
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 20px;
+        }
+
+        .section { 
+            background: var(--card-bg); 
+            padding: 25px; 
+            border-radius: 12px; 
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5); 
+            margin-bottom: 20px;
+        }
+
+        h2 { 
+            border-bottom: 2px solid var(--accent-blue);
+            padding-bottom: 10px;
+            margin-top: 0;
+            color: var(--text-light);
+            font-size: 1.5em;
+        }
+
+        label { 
+            display: block; 
+            margin-bottom: 8px; 
+            font-weight: 500; 
+            color: var(--text-light);
+        }
+        
+        input[type="text"], 
+        input[type="number"],
+        input[type="email"],
+        input[type="tel"],
+        input[type="file"] { 
+            width: 100%; 
+            padding: 12px; 
+            margin-bottom: 15px; 
+            border-radius: 6px; 
+            border: 1px solid var(--border-color); 
+            background-color: var(--bg-dark);
+            color: var(--text-light);
+            box-sizing: border-box; 
+            transition: border-color 0.3s;
+        }
+        
+        input[type="text"]:focus, 
+        input[type="number"]:focus,
+        input[type="email"]:focus,
+        input[type="tel"]:focus,
+        input[type="file"]:focus {
+            border-color: var(--accent-blue);
+            outline: none;
+        }
+
+        button { 
+            width: 100%; 
+            padding: 12px; 
+            margin-bottom: 10px; 
+            border-radius: 6px; 
+            border: none; 
+            font-weight: bold; 
+            cursor: pointer;
+            transition: background-color 0.3s, transform 0.1s;
+        }
+        
+        button.primary-btn { 
+            background-color: var(--accent-blue); 
+            color: var(--bg-dark); 
+        }
+
+        button.primary-btn:hover:not(:disabled) {
+            background-color: #0088cc; 
+            transform: translateY(-1px);
+        }
+
+        button#btn-operar { 
+            background-color: var(--win-green); 
+            color: var(--bg-dark); 
+        }
+        
+        button#btn-operar:hover:not(:disabled) { 
+            background-color: #27ae60; 
+            transform: translateY(-1px);
+        }
+        
+        button#btn-parar { 
+            background-color: var(--loss-red); 
+            color: var(--text-light); 
+        }
+        
+        button#btn-parar:hover:not(:disabled) { 
+            background-color: #c0392b; 
+            transform: translateY(-1px);
+        }
+        
+        button#btn-logout,
+        button.secondary-btn { 
+            background-color: var(--border-color); 
+            color: var(--text-light); 
+            margin-top: 15px;
+        }
+
+        button#btn-logout:hover,
+        button.secondary-btn:hover { 
+            background-color: #57606f; 
+        }
+
+        button:disabled { 
+            background-color: #57606f !important; 
+            color: #bdc3c7; 
+            cursor: not-allowed; 
+        }
+
+        #login-screen,
+        #cadastro-screen { 
+            max-width: 400px;
+            margin: 50px auto; 
+            text-align: center; 
+        }
+
+        #login-screen button,
+        #cadastro-screen button {
+            margin-top: 10px;
+        }
+
+        #app-screen { 
+            display: none; 
+        }
+        
+        #cadastro-screen {
+            display: none; 
+        }
+
+        .info-banca { font-size: 1.4em; font-weight: bold; color: var(--win-green); text-align: center; margin: 20px 0; padding: 10px; background-color: rgba(46, 204, 113, 0.1); border-radius: 6px; }
+        .stats p { padding: 10px; border-radius: 4px; margin: 8px 0; }
+        .stats .info-stat { background-color: rgba(0, 168, 255, 0.1); border-left: 5px solid var(--accent-blue); }
+        .stats .win { background-color: rgba(46, 204, 113, 0.2); color: var(--win-green); }
+        .stats .loss { background-color: rgba(231, 76, 60, 0.2); color: var(--loss-red); }
+        .stats .tie { background-color: rgba(241, 196, 15, 0.2); color: var(--info-yellow); }
+        #log-resultados { height: 300px; overflow-y: auto; border: 1px solid var(--border-color); padding: 10px; background-color: var(--bg-dark); border-radius: 6px; }
+        #log-resultados p { margin: 3px 0; font-size: 0.9em; padding: 5px; }
+
+        #notification { position: fixed; left: 50%; transform: translateX(-50%); top: -100px; background-color: var(--accent-blue); color: var(--bg-dark); padding: 15px 25px; border-radius: 0 0 8px 8px; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5); opacity: 0; transition: opacity 0.5s ease-out, top 0.5s ease-out; font-weight: bold; z-index: 1000; }
+        #notification.show { opacity: 1; top: 0; }
+        #notification.win-color { background-color: var(--win-green); }
+        #notification.loss-color { background-color: var(--loss-red); color: var(--text-light); }
+        #notification.info-color { background-color: var(--accent-blue); }
+
+        @media (max-width: 768px) {
+            .dashboard-grid {
+                grid-template-columns: 1fr; 
+            }
+        }
+    </style>
+</head>
+<body onload="checkLogin()">
+
+<div class="container">
+    <img src="https://i.ibb.co/LhBmbvdG/Gemini-Generated-Image-hx5oa0hx5oa0hx5o.png" alt="Logo Money IA" class="header-logo">
+    <h1>MONEY IA <span style="font-size: 0.5em; display: block; opacity: 0.7;">BAC BO ANALYZER PRO</span></h1>
+    
+    <div id="notification"></div>
+
+    <div id="login-screen" class="section">
+        <h2>ACESSO AO ANALYZER</h2>
+        <label for="username">Nome de Usuário:</label>
+        <input type="text" id="username" placeholder="Insira seu nome de acesso">
+        <button class="primary-btn" onclick="login()">INICIAR SESSÃO</button>
+        <hr style="border-color: var(--border-color); margin: 20px 0;">
+        <button class="secondary-btn" onclick="showCadastro()">SOLICITAR ACESSO / CADASTRO</button>
+    </div>
+    
+    <div id="cadastro-screen" class="section">
+        <h2>SOLICITAÇÃO DE ACESSO</h2>
+        <p>Preencha os dados e clique em enviar para iniciar a conversa no Telegram. Você deverá anexar a foto do comprovante por lá.</p>
+        
+        <label for="reg-name">Nome Completo:</label>
+        <input type="text" id="reg-name" placeholder="Seu nome">
+
+        <label for="reg-email">E-mail:</label>
+        <input type="email" id="reg-email" placeholder="seu@email.com">
+        
+        <label for="reg-idade">Idade:</label>
+        <input type="number" id="reg-idade" min="18" max="99" placeholder="Idade">
+
+        <label for="reg-cidade">Cidade:</label>
+        <input type="text" id="reg-cidade" placeholder="Sua cidade e estado">
+
+        <label for="reg-telefone">Telefone (Telegram):</label>
+        <input type="tel" id="reg-telefone" placeholder="(XX) 9XXXX-XXXX">
+        
+        <p style="color: var(--info-yellow); font-size: 0.9em;">* O comprovante de depósito deverá ser anexado no chat do Telegram, após o clique.</p>
+        
+        <button class="primary-btn" onclick="enviarCadastroTelegram()">ENVIAR SOLICITAÇÃO E ABRIR TELEGRAM</button>
+        <button class="secondary-btn" onclick="showLogin()">VOLTAR AO LOGIN</button>
+    </div>
+    <div id="app-screen">
+
+        <div class="dashboard-grid">
+            
+            <div class="col-config">
+                <div class="section">
+                    <h2>Configurações de Risco e Banca</h2>
+                    <label for="banca-inicial">Banca Inicial (R$):</label>
+                    <input type="number" id="banca-inicial" value="1000" min="10" step="10">
+
+                    <label for="valor-entrada">Valor da Entrada (R$):</label>
+                    <input type="number" id="valor-entrada" value="10" min="1" step="1">
+
+                    <label for="stop-loss">Stop Loss (R$ Máx. Perda):</label>
+                    <input type="number" id="stop-loss" value="100" min="1" step="1">
+
+                    <button onclick="salvarConfiguracao()">Salvar Configurações</button>
+                </div>
+
+                <div class="section">
+                    <h2>Controle da IA</h2>
+                    <button id="btn-operar" onclick="iniciarOperacoes()" disabled>INICIAR OPERAÇÕES</button>
+                    <button id="btn-parar" onclick="pararOperacoes()" disabled>PARAR OPERAÇÕES</button>
+                    <button id="btn-logout" onclick="logout()">SAIR / TROCAR USUÁRIO</button>
+                </div>
+            </div>
+
+            <div class="col-stats">
+                <div class="section stats">
+                    
+                    <p class="info-banca">
+                        BANCA TOTAL: R$ <span id="banca-atual">0.00</span>
+                    </p>
+
+                    <h2>Estatísticas em Tempo Real</h2>
+                    <p class="info-stat">Entradas Realizadas: <span id="entradas-total">0</span></p>
+                    <p class="info-stat">Acertos (Greens): <span id="acertos-total">0</span></p>
+                    <p class="info-stat">Acertividade Geral: <span id="acertividade">0.00%</span></p>
+                    
+                    <h3 style="margin-top: 20px;">Histórico de Operações:</h3>
+                    <div id="log-resultados">
+                        </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<script>
+    // 🛑 LISTA DE USUÁRIOS AUTORIZADOS 🛑
+    const AUTHORIZED_USERS = ['master', 'admin', 'vip01', 'gerente'];
+    
+    // 📢 ONDE A MENSAGEM SERÁ ENVIADA: O username fornecido!
+    const TELEGRAM_RECIPIENT = 'MoneyIA2026';
+
+    // Variáveis Globais de Estado
+    let banca = 0;
+    let bancaInicial = 0; 
+    let valorEntrada = 0;
+    let stopLoss = 0;
+    let entradasTotal = 0;
+    let acertosTotal = 0;
+    let timerOperacao = null; 
+    let isOperating = false;
+
+    // --- FUNÇÕES DE CONTROLE DE TELA ---
+    
+    function showCadastro() {
+        document.getElementById('login-screen').style.display = 'none';
+        document.getElementById('cadastro-screen').style.display = 'block';
+    }
+
+    function showLogin() {
+        document.getElementById('login-screen').style.display = 'block';
+        document.getElementById('cadastro-screen').style.display = 'none';
+    }
+
+    function checkLogin() {
+        const username = localStorage.getItem('bacbo_username');
+        if (username && AUTHORIZED_USERS.includes(username.toLowerCase())) {
+            document.getElementById('login-screen').style.display = 'none';
+            document.getElementById('app-screen').style.display = 'block';
+            salvarConfiguracao(true); 
+            mostrarNotificacao(`Bem-vindo de volta, ${username}!`, 'info', 4000);
+        } else {
+            showLogin(); 
+            document.getElementById('app-screen').style.display = 'none';
+        }
+        document.getElementById('banca-atual').textContent = banca.toFixed(2);
+    }
+
+    function login() {
+        const usernameInput = document.getElementById('username');
+        const username = usernameInput.value.trim().toLowerCase(); 
+
+        if (username === '') {
+            alert('Por favor, digite seu nome de usuário.');
+            return;
+        }
+
+        if (!AUTHORIZED_USERS.includes(username)) {
+            alert('Acesso negado. Usuário não autorizado. Por favor, solicite seu acesso.');
+            return;
+        }
+
+        localStorage.setItem('bacbo_username', username);
+        document.getElementById('login-screen').style.display = 'none';
+        document.getElementById('app-screen').style.display = 'block';
+        salvarConfiguracao(true); 
+    }
+
+    function logout() {
+        pararOperacoes(); 
+        localStorage.removeItem('bacbo_username');
+        location.reload(); 
+    }
+
+    // --- FUNÇÃO DE CADASTRO E ENVIO DIRETO PARA O TELEGRAM ---
+
+    function enviarCadastroTelegram() {
+        const nome = document.getElementById('reg-name').value.trim();
+        const email = document.getElementById('reg-email').value.trim();
+        const idade = document.getElementById('reg-idade').value;
+        const cidade = document.getElementById('reg-cidade').value.trim();
+        const telefone = document.getElementById('reg-telefone').value.trim();
+        
+        if (!nome || !email || !idade || !cidade || !telefone) {
+            alert('🚨 ATENÇÃO: Por favor, preencha todos os campos obrigatórios.');
+            return;
+        }
+        
+        // 1. Monta a mensagem formatada
+        const mensagemCrua = 
+            `*SOLICITAÇÃO DE ACESSO - MONEY IA*\n\n` +
+            `Prezado(a) administrador(a),\n` +
+            `Gostaria de solicitar a liberação de acesso ao painel. Seguem meus dados:\n\n` +
+            `👤 Nome: ${nome}\n` +
+            `📧 E-mail: ${email}\n` +
+            `🎂 Idade: ${idade} anos\n` +
+            `🏙️ Cidade: ${cidade}\n` +
+            `📱 Telegram/Telefone: ${telefone}\n\n` +
+            `*Atenção:* O comprovante de depósito está sendo enviado logo após esta mensagem.`;
+
+        // 2. Codifica a URL (substitui espaços e caracteres especiais)
+        const mensagemCodificada = encodeURIComponent(mensagemCrua);
+        
+        // 3. Monta o link do Telegram
+        const telegramLink = `https://t.me/${TELEGRAM_RECIPIENT}?text=${mensagemCodificada}`;
+
+        // 4. Abre o link (iniciando o chat com a mensagem pronta)
+        window.open(telegramLink, '_blank');
+        
+        // 5. Feedback para o usuário
+        alert('✅ Sucesso! O Telegram foi aberto com a mensagem pronta. Não se esqueça de enviar a foto do comprovante no chat!');
+
+        // 6. Volta para a tela de login após o envio (para simular a conclusão)
+        showLogin();
+        
+        // Limpa o formulário
+        document.getElementById('cadastro-screen').querySelectorAll('input').forEach(input => input.value = '');
+    }
+
+    // --- O restante das funções (atualizarEstatisticas, adicionarLog, etc.) permanece inalterado ---
+
+    function atualizarEstatisticas() {
+        document.getElementById('banca-atual').textContent = banca.toFixed(2);
+        document.getElementById('entradas-total').textContent = entradasTotal;
+        document.getElementById('acertos-total').textContent = acertosTotal;
+
+        let acertividade = entradasTotal > 0 ? (acertosTotal / entradasTotal) * 100 : 0;
+        document.getElementById('acertividade').textContent = acertividade.toFixed(2) + '%';
+        
+        if (isOperating && (bancaInicial - banca) >= stopLoss) {
+            pararOperacoes(true);
+            adicionarLog(`[STOP LOSS ATINGIDO] Perda de R$ ${(bancaInicial - banca).toFixed(2)}. Operações paradas.`, 'LOSS');
+            mostrarNotificacao('🛑 STOP LOSS ATINGIDO! Operações paradas.', 'loss', 7000);
+        }
+    }
+
+    function adicionarLog(texto, tipo) {
+        const logDiv = document.getElementById('log-resultados');
+        const p = document.createElement('p');
+        p.textContent = `[${new Date().toLocaleTimeString()}] ${texto}`;
+
+        if (tipo === 'WIN') { p.className = 'win'; } 
+        else if (tipo === 'LOSS') { p.className = 'loss'; } 
+        else if (tipo === 'TIE') { p.className = 'tie'; } 
+        else if (tipo === 'INFO') { p.className = 'info-stat'; }
+
+        logDiv.prepend(p); 
+        if (logDiv.children.length > 30) {
+            logDiv.removeChild(logDiv.lastChild);
+        }
+    }
+    
+    function mostrarNotificacao(mensagem, tipo = 'info', tempo = 4000) {
+        const notif = document.getElementById('notification');
+        
+        notif.classList.remove('win-color', 'loss-color', 'info-color');
+
+        notif.textContent = mensagem;
+        
+        if (tipo === 'win') { notif.classList.add('win-color'); } 
+        else if (tipo === 'loss') { notif.classList.add('loss-color'); } 
+        else { notif.classList.add('info-color'); }
+        
+        notif.classList.add('show');
+
+        setTimeout(() => {
+            notif.classList.remove('show');
+        }, tempo);
+    }
+
+    function salvarConfiguracao(isInitial = false) {
+        const novaBanca = parseFloat(document.getElementById('banca-inicial').value);
+        const novaEntrada = parseFloat(document.getElementById('valor-entrada').value);
+        const novoStopLoss = parseFloat(document.getElementById('stop-loss').value);
+
+        if (isNaN(novaBanca) || novaBanca <= 0 || isNaN(novaEntrada) || novaEntrada <= 0 || isNaN(novoStopLoss) || novoStopLoss <= 0) {
+            if (!isInitial) alert('Por favor, insira valores válidos e positivos para Banca, Entrada e Stop Loss.');
+            return;
+        }
+
+        bancaInicial = novaBanca;
+        banca = novaBanca;
+        valorEntrada = novaEntrada;
+        stopLoss = novoStopLoss;
+
+        if (!isInitial) {
+             entradasTotal = 0;
+             acertosTotal = 0;
+             document.getElementById('log-resultados').innerHTML = ''; 
+             mostrarNotificacao(`Configurações atualizadas: Banca R$ ${banca.toFixed(2)} | Stop Loss R$ ${stopLoss.toFixed(2)}`, 'info', 4000);
+        }
+        
+        atualizarEstatisticas();
+        document.getElementById('btn-operar').disabled = false;
+    }
+
+    function simularOperacao() {
+        if (!isOperating) return; 
+
+        if (banca < valorEntrada) {
+            pararOperacoes(true);
+            adicionarLog(`[ALERTA] BANCA QUEBRADA. Saldo final: R$ ${banca.toFixed(2)}.`, 'LOSS');
+            mostrarNotificacao('⚠️ OPERAÇÕES PARADAS: Saldo insuficiente!', 'loss', 5000);
+            return;
+        }
+
+        const forcarVitoria = Math.random() < 0.99; 
+        const apostaDaIA = Math.random() < 0.5 ? 'Vermelho' : 'Azul';
+        const apostaTexto = apostaDaIA === 'Vermelho' ? 'VERMELHO' : 'AZUL';
+
+        banca -= valorEntrada;
+        entradasTotal++;
+        
+        let resultadoTexto = '';
+        let tipoLog = 'LOSS';
+        let ganhoPerda = -valorEntrada; 
+
+        if (forcarVitoria) {
+            if (Math.random() < 0.95) { 
+                resultadoTexto = `WIN (GREEN)! Resultado: ${apostaDaIA}`;
+                ganhoPerda = valorEntrada;
+                banca += valorEntrada * 2; 
+                acertosTotal++;
+                tipoLog = 'WIN';
+                mostrarNotificacao(`✅ WIN! (G: R$ ${ganhoPerda.toFixed(2)})`, 'win', 3000);
+            } else {
+                resultadoTexto = 'EMPATE! (Push)';
+                ganhoPerda = 0;
+                banca += valorEntrada; 
+                tipoLog = 'TIE';
+                entradasTotal--; 
+                mostrarNotificacao('🟡 EMPATE! (R$ 0.00)', 'info', 3000);
+            }
+        } else {
+            const resultadoReal = apostaDaIA === 'Vermelho' ? 'Azul' : 'Vermelho'; 
+            resultadoTexto = `LOSS (RED). Resultado: ${resultadoReal}`;
+            tipoLog = 'LOSS';
+            mostrarNotificacao(`❌ LOSS! (P: R$ ${ganhoPerda.toFixed(2)})`, 'loss', 3000);
+        }
+
+        const logFinal = `Entrada ${entradasTotal}: IA apostou em ${apostaTexto}. ${resultadoTexto}. Saldo: R$ ${ganhoPerda.toFixed(2)}. Banca: R$ ${banca.toFixed(2)}`;
+        adicionarLog(logFinal, tipoLog);
+        
+        atualizarEstatisticas();
+
+        if (isOperating) {
+            agendarProximaOperacao();
+        }
+    }
+
+    function agendarProximaOperacao() {
+        const minTime = 15000;
+        const maxTime = 180000;
+        const delay = Math.random() * (maxTime - minTime) + minTime;
+        
+        if (timerOperacao) {
+            clearTimeout(timerOperacao);
+        }
+
+        timerOperacao = setTimeout(simularOperacao, delay);
+    }
+
+
+    function iniciarOperacoes() {
+        if (banca <= 0 || valorEntrada <= 0 || stopLoss <= 0) {
+            alert('Por favor, configure sua Banca Inicial, Valor de Entrada e Stop Loss antes de iniciar.');
+            return;
+        }
+
+        if (isOperating) return;
+
+        isOperating = true;
+        
+        document.getElementById('btn-operar').disabled = true;
+        document.getElementById('btn-parar').disabled = false;
+        
+        adicionarLog('--- INICIANDO OPERAÇÕES AUTOMÁTICAS ---', 'INFO');
+        mostrarNotificacao('✅ IA COMEÇOU A OPERAR ', 'info', 4000);
+        
+        agendarProximaOperacao(); 
+    }
+
+    function pararOperacoes(isAutoStop = false) {
+        if (timerOperacao) {
+            clearTimeout(timerOperacao);
+            timerOperacao = null;
+        }
+
+        isOperating = false;
+
+        document.getElementById('btn-operar').disabled = false;
+        document.getElementById('btn-parar').disabled = true;
+        
+        if (!isAutoStop) {
+            adicionarLog('--- OPERAÇÕES PARADAS PELO USUÁRIO ---', 'INFO');
+            mostrarNotificacao('🛑 OPERAÇÕES PARADAS!', 'info', 3000);
+        }
+    }
+</script>
+
+</body>
+</html>
